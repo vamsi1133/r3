@@ -1,0 +1,14 @@
+.home {
+  background: #ecf2ff;
+  padding: 15px;
+}
+
+.addons {
+  background: #c7e8ca;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.addons:nth-child(even) {
+  background: #f7f1e5;
+}
