@@ -1,8 +1,13 @@
 import { Button } from "@mui/material";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import AddItems from "../../components/addItems";
+import Logout from "../../HOC/logout";
+import { useSelector, useDispatch } from "react-redux";
+import { ADD_ITEM } from "../../store/util";
 import "./Home.css";
+import { addAddon, addItem } from "../../store/actions";
 
 const addOns = [
   "PERI PERI",
@@ -14,16 +19,30 @@ const addOns = [
   "medium",
   "large",
 ];
+
 const Home = () => {
-  const [item, setItem] = useState(0);
+  const dispatch = useDispatch();
+  const item = useSelector(({ items }) => items.item);
   const [showMessage, setShowMessage] = useState(false);
   const [clr, setClr] = useState("red");
-  const [selectedAddons, setSelectedAddons] = useState([]);
+  // const [selectedAddons, setSelectedAddons] = useState([]);
+  const selectedAddons = useSelector(({ items }) => items.addons);
   const history = useNavigate();
+  const getLoop = (val) => {
+    let res = 0;
+    for (let i = 0; i < val * 100000; i++) {
+      res += i;
+    }
+    return res;
+  };
 
-  useEffect(() => {
-    setItem(0);
-  }, []);
+  const getCounted = useMemo(() => {
+    getLoop(item);
+  }, [item]);
+
+  // const itemCounter = useEffect(() => {
+  //   setItem(0);
+  // }, []);
 
   useEffect(() => {
     if (item >= 5) {
@@ -32,9 +51,9 @@ const Home = () => {
       setShowMessage(false);
     }
     if (item < 0) {
-      setItem(0);
+      dispatch({ type: ADD_ITEM, payload: { item: 0 } });
     } else if (item > 5) {
-      setItem(5);
+      dispatch({ type: ADD_ITEM, payload: { item: 1 } });
     }
     return () => {
       console.log("umounted");
@@ -43,12 +62,16 @@ const Home = () => {
 
   const updateItems = (e, type) => {
     if (type === "inc") {
-      setItem((prev) => prev + 1);
+      dispatch(addItem(item + 1));
+      // setItem((prev) => prev + 1);
     } else if (type === "dec") {
-      setItem((prev) => prev - 1);
+      dispatch({ type: ADD_ITEM, payload: { item: item - 1 } });
+
+      // setItem((prev) => prev - 1);
     } else {
       const { value } = e.target;
-      setItem(value);
+      // setItem(value);
+      dispatch({ type: ADD_ITEM, payload: { item: value } });
     }
   };
 
@@ -68,11 +91,13 @@ const Home = () => {
     if (checked) {
       temp.push(value);
       // setSelectedAddons((prev) => [...prev, value]);
-      setSelectedAddons(temp);
+      // setSelectedAddons(temp);
+      dispatch(addAddon(temp));
     } else {
       const ind = temp.indexOf(value);
       temp.splice(ind, 1);
-      setSelectedAddons(temp);
+      // setSelectedAddons(temp);
+      dispatch(addAddon(temp));
     }
   };
 
@@ -91,16 +116,11 @@ const Home = () => {
       });
   };
 
-  const logoutHandler = () => {
-    localStorage.clear();
-    history("/login");
-  };
-
   return (
     <>
       <div className="home">
-        <h1> Welocme to My Food</h1>
-        <Button onClick={logoutHandler}>Logout</Button>
+        <h1> Welocme to My Food {getCounted}</h1>
+        <Link to="/cart">Cart</Link>
         {msg()}
         {item > 0 ? (
           <span>please proceed with the order</span>
@@ -114,20 +134,13 @@ const Home = () => {
           />
           <br />
           <b>Price: 150₹ </b>
-          <button
-            style={{ width: "50px", padding: "3px" }}
-            onClick={() => updateItems(null, "dec")}
+          <AddItems
+            item={item}
+            updateItems={updateItems}
+            showMessage={showMessage}
           >
-            -
-          </button>
-          <input type="number" value={item} onChange={updateItems} />
-          <button
-            style={{ width: 50, padding: "3px" }}
-            onClick={(e) => updateItems(e, "inc")}
-            disabled={showMessage}
-          >
-            +
-          </button>
+            ADD ITEMS IN HOME
+          </AddItems>
           <br />
           {showMessage && (
             <span
@@ -168,4 +181,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Logout(Home);

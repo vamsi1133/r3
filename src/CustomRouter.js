@@ -1,21 +1,22 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
-import Cart from "./pages/Cart";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
 
-const CustomRouter = () => {
+const Home = React.lazy(() => import("./pages/Home"));
+const Login = React.lazy(() => import("./pages/Login"));
+const Cart = React.lazy(() => import("./pages/Cart"));
+
+const CustomRouter = (props) => {
   const routes = [
     {
-      element: <Home />,
+      element: <Home {...props} />,
       path: "/",
     },
     {
-      element: <Cart discount={10} />,
+      element: <Cart discount={10} {...props} />,
       path: "/cart",
     },
     {
-      element: <Login />,
+      element: <Login {...props} />,
       path: "/login",
     },
   ];
@@ -24,7 +25,16 @@ const CustomRouter = () => {
       <Router>
         <Routes>
           {routes.map((val) => {
-            return <Route element={val.element} path={val.path} />;
+            return (
+              <Route
+                element={
+                  <Suspense fallback={<div>....Loading</div>}>
+                    {val.element}
+                  </Suspense>
+                }
+                path={val.path}
+              />
+            );
           })}
         </Routes>
       </Router>
